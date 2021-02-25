@@ -1,11 +1,10 @@
 import {tableReducer} from './tableReducer';
-import {applyMiddleware, combineReducers, createStore} from 'redux';
-import thunk from 'redux-thunk';
+import {combineReducers, createStore} from 'redux';
 
 const rootReducer = combineReducers({
     table: tableReducer
 })
 
-export const store = createStore(rootReducer, applyMiddleware(thunk));
+export const store = createStore(rootReducer);
 
 export type AppRootStateType = ReturnType<typeof rootReducer>

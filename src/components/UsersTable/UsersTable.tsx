@@ -1,17 +1,16 @@
-import {Button, Result, Spin, Table} from 'antd';
-import React, {useCallback} from 'react';
+import {Button, Table} from 'antd';
+import React, {useCallback, useEffect} from 'react';
 import {useDispatch, useSelector} from 'react-redux';
 import {
     search,
     setCurrentPage,
-    setDisplayTableData, setIsAddNewUserFormVisible, setIsDataSelected, setSelectedUserData, setSomeError,
+    setDisplayTableData, setIsAddNewUserFormVisible, setSelectedUserData,
     setTotalUsersCount
 } from '../../redux/tableReducer';
 import {AppRootStateType} from '../../redux/redux-store';
 import {Paginator} from '../Paginator/Paginator';
 import {TableSearch} from '../Search/TableSearch';
 import {UserInfo} from '../UserInfo/UserInfo';
-import {DataSelector} from '../DataSelector/DataSelector';
 import {AddNewUserForm} from '../AddNewUserForm/AddNewUserForm';
 
 type AddressType = {
@@ -35,10 +34,10 @@ export type UserType = {
 export const UsersTable = () => {
     const dispatch = useDispatch()
 
-    let someError = useSelector<AppRootStateType, boolean>(state => state.table.someError)
+    useEffect(() => {
+        dispatch(setDisplayTableData())
+    }, [dispatch])
 
-//Если таблица загружается, показывается крутилка
-    let isTableLoading = useSelector<AppRootStateType, boolean>(state => state.table.isTableLoading)
 
 //Данные для таблицы (пропсы AntDesign)
     let tableData = useSelector<AppRootStateType, Array<UserType>>(state => state.table.tableData)
@@ -129,52 +128,30 @@ export const UsersTable = () => {
         dispatch(setIsAddNewUserFormVisible(!isAddNewUserFormVisible))
     }, [dispatch, isAddNewUserFormVisible])
 
-//Таблица отображается только после выбора набора данных
-    let isDataSelected = useSelector<AppRootStateType, boolean>(state => state.table.isDataSelected)
-    if (!isDataSelected) {
-        return <DataSelector/>
-    }
-
-    const onBackHomeClick = () => {
-        dispatch(setSomeError(false))
-        dispatch(setIsDataSelected(false))
-    }
-
-    if (someError) {
-        return <Result
-            status="500"
-            subTitle="Sorry, something went wrong."
-            extra={<Button type="primary" onClick={onBackHomeClick}>Back Home</Button>}
-        />
-    }
-
 
     return (
         <div style={{display: 'flex', justifyContent: 'center'}}>
-            {isTableLoading ?
-                <Spin style={{marginTop: '100px'}}/> :
-                <div>
-                    <TableSearch onSearch={onSearch}/>
-                    <Button onClick={onAddUserClick}>Add User</Button>
-                    {isAddNewUserFormVisible ? <AddNewUserForm/> : ''}
-                    <Table dataSource={displayTableData} columns={columns} rowKey={'phone'} pagination={false}
-                           onRow={(record, rowIndex) => {
-                               return {
-                                   onClick: event => {
-                                       dispatch(setSelectedUserData(record))
-                                   },
-                               };
-                           }}/>
-                    <Paginator totalItemsCount={totalUsersCount} pageSize={pageSize}
-                               currentPage={currentPage} onPageChanged={onPageChanged}
-                               portionSize={5}
-                    />
-                    {selectedUserData ?
-                        <UserInfo userData={selectedUserData}/>
-                        : ''
-                    }
-                </div>
-            }
+            <div>
+                <TableSearch onSearch={onSearch}/>
+                <Button onClick={onAddUserClick}>Add User</Button>
+                {isAddNewUserFormVisible ? <AddNewUserForm/> : ''}
+                <Table dataSource={displayTableData} columns={columns} rowKey={'phone'} pagination={false}
+                       onRow={(record, rowIndex) => {
+                           return {
+                               onClick: event => {
+                                   dispatch(setSelectedUserData(record))
+                               },
+                           };
+                       }}/>
+                <Paginator totalItemsCount={totalUsersCount} pageSize={pageSize}
+                           currentPage={currentPage} onPageChanged={onPageChanged}
+                           portionSize={5}
+                />
+                {selectedUserData ?
+                    <UserInfo userData={selectedUserData}/>
+                    : ''
+                }
+            </div>
         </div>
     );
 }
